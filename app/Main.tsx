@@ -2,8 +2,10 @@
 import { useState } from "react";
 import TopNavBar from "./components/TopNavBar";
 import AddNote from "./components/AddNote";
-import NoteList from "./components/NoteList";
-import { TrashIcon, ArchiveBoxIcon, ArchiveBoxXMarkIcon } from "@heroicons/react/24/outline";
+import Search from "./components/Search";
+import ActiveNotes from "./components/ActiveNotes";
+import ArchivedNotes from "./components/ArchivedNotes";
+import EditNoteModal from "./components/EditNoteModal";
 
 const MainPage = () => {
   const [notes, setNotes] = useState(() => {
@@ -13,12 +15,13 @@ const MainPage = () => {
     }
     return [];
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editingNote, setEditingNote] = useState(null);
 
   const handleAddNote = (newNote) => {
     const updatedNotes = [...notes, { ...newNote, id: Date.now(), archived: false }];
     setNotes(updatedNotes);
     localStorage.setItem("notes", JSON.stringify(updatedNotes));
-    console.log(updatedNotes);
   };
 
   const handleDeleteNote = (id) => {
@@ -37,17 +40,43 @@ const MainPage = () => {
     localStorage.setItem("notes", JSON.stringify(updatedNotes));
   };
 
-  const activeNotes = notes.filter((note) => !note.archived);
-  const archivedNotes = notes.filter((note) => note.archived);
+  const handleSearch = (term) => {
+    setSearchTerm(term.toLowerCase());
+  };
+
+  const handleEditNote = (note) => {
+    setEditingNote(note);
+  };
+
+  const handleSaveEdit = (updatedNote) => {
+    const updatedNotes = notes.map((note) =>
+      note.id === updatedNote.id ? updatedNote : note
+    );
+    setNotes(updatedNotes);
+    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    setEditingNote(null);
+  };
+
+  const filterNotes = (notes) => {
+    return notes.filter(
+      (note) =>
+        note.title.toLowerCase().includes(searchTerm) ||
+        note.description.toLowerCase().includes(searchTerm)
+    );
+  };
+
+  const activeNotes = filterNotes(notes.filter((note) => !note.archived));
+  const archivedNotes = filterNotes(notes.filter((note) => note.archived));
 
   return (
     <div className="w-full">
       <TopNavBar />
-      <div className="flex gap-4 items-center flex-col sm:flex-row">
-        <AddNote onAddNote={handleAddNote} />
-      </div>
-      <div className="w-full">
-        <div className="">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-8">
+          <AddNote onAddNote={handleAddNote} />
+          <Search onSearch={handleSearch} />
+        </div>
+        <div className="w-full">
           {notes.length === 0 ? (
             <div className="text-center text-gray-500 mt-8">
               No notes yet. Click "Add Note" to create one!
@@ -55,70 +84,30 @@ const MainPage = () => {
           ) : (
             <>
               <h2 className="text-xl font-semibold mb-4">Active Notes</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activeNotes.map((note) => (
-                  <div
-                    key={note.id}
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow group relative"
-                  >
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex">
-                      <button
-                        onClick={() => handleArchiveToggle(note.id)}
-                        className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors mr-1"
-                        title="Archive note"
-                      >
-                        <ArchiveBoxIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors"
-                        title="Delete note"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold pr-8">{note.title}</h3>
-                    <p className="text-gray-600 whitespace-pre-wrap">{note.description}</p>
-                  </div>
-                ))}
-              </div>
-
-              {archivedNotes.length > 0 && (
-                <>
-                  <h2 className="text-xl font-semibold mb-4 mt-8">Archived Notes</h2>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {archivedNotes.map((note) => (
-                      <div
-                        key={note.id}
-                        className="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow group relative"
-                      >
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex">
-                          <button
-                            onClick={() => handleArchiveToggle(note.id)}
-                            className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors mr-1"
-                            title="Unarchive note"
-                          >
-                            <ArchiveBoxXMarkIcon className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteNote(note.id)}
-                            className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors"
-                            title="Delete note"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                        </div>
-                        <h3 className="mb-2 text-lg font-semibold pr-8">{note.title}</h3>
-                        <p className="text-gray-600 whitespace-pre-wrap">{note.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+              <ActiveNotes
+                notes={activeNotes}
+                onArchive={handleArchiveToggle}
+                onDelete={handleDeleteNote}
+                onEdit={handleEditNote}
+              />
+              <ArchivedNotes
+                notes={archivedNotes}
+                onUnarchive={handleArchiveToggle}
+                onDelete={handleDeleteNote}
+                onEdit={handleEditNote}
+              />
             </>
           )}
         </div>
       </div>
+
+      {editingNote && (
+        <EditNoteModal
+          note={editingNote}
+          onSave={handleSaveEdit}
+          onClose={() => setEditingNote(null)}
+        />
+      )}
     </div>
   );
 };
