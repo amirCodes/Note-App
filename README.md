@@ -21,6 +21,7 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## App structure
+```
 project-root/
 ├── client/                 # Frontend React application
 │   ├── public/
@@ -49,6 +50,7 @@ project-root/
 │
 └── README.md
 
+```
 
 To learn more about Next.js, take a look at the following resources:
 
@@ -63,3 +65,23 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 "# Note-App" 
+This setup provides:
+
+Complete separation of concerns
+RESTful API structure
+Proper error handling
+Environment configuration
+Database integration
+CORS support
+API service layer in the frontend
+Proper state management with API integration
+Remember to:
+
+Add proper error handling and loading states in the UI
+Implement proper validation both in frontend and backend
+Add authentication if needed
+Use environment variables for configuration
+Add proper logging
+Implement rate limiting and security measures
+Add proper documentation
+Add testing
